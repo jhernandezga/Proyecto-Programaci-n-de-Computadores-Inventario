@@ -26,11 +26,12 @@ rol = 0
 usuario = ""
 contraseña = ""
 
-
-"""FUNCION CODIGO QUE VALIDA DATOS PARA INICIAR SESION"""
-#APLICACION DE CICLOS PARA BUSQUEDA EN UNA LISTA
-#APLICACION DE CONDICIONALES
-#APLICACION OPERADORES ASIGNACIÓN, ARITMETICOS Y LÓGICOS
+root = Tk()  # Se crea una ventana
+root.title("LABS UNAL")  # se le da titulo a la ventana
+root.resizable(0, 0)  # no se permite que se alargue la ventana , con (1,1) se permite alargue vertical y horizontal
+root.iconbitmap("../Imagenes/Icono/iconoUnal.ico")  # se busca la imagen del icono
+logoUnal = PhotoImage(file="../Imagenes/Logos/logo.png")
+demoUnal = PhotoImage(file="../Imagenes/Logos/demo.png")
 
 class Usuarios:   #clase para la creacion de usuarios
     usuario = ""
@@ -96,6 +97,42 @@ class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la ba
 
         return self.retorno
 
+def ventanaUsuario3():
+
+    frame = Frame()
+    frame.pack()
+
+    def anterior():
+        ventanaUsuario2()
+        frame.destroy()
+    anteriorButton = Button(frame, text="Anterior", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white",
+                             command=anterior)  # command es para que llame a la funcion cuando se presione el boton
+    anteriorButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    anteriorButton.grid(row=7, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+    labelImagen1 = Label(frame, image=demoUnal)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelImagen1.config(bg="White")
+    labelImagen1.grid(row=1, column=1)
+
+def ventanaUsuario2():
+
+    frame = Frame()
+    frame.pack()
+    def siguiente():
+        ventanaUsuario3()
+        frame.destroy()
+
+    siguienteButton = Button(frame, text="Siguiente1", width=20, height=1, activeforeground="#96D646",
+                          activebackground="white",
+                          command=siguiente)  # command es para que llame a la funcion cuando se presione el boton
+    siguienteButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                        fg="white")  # se configura el relieve colore y fuente
+    siguienteButton.grid(row=7, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+    labelImagen1 = Label(frame, image=logoUnal)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelImagen1.config(bg="White")
+    labelImagen1.grid(row=1, column=1)
+
 def ventanaInicio(logo, logo2):
     def inicioSesion():
 
@@ -103,19 +140,15 @@ def ventanaInicio(logo, logo2):
         contraseña = passEntry.get()
         rol = rola.get()
 
-        print(rol)
-        print(usuario)
-        print(contraseña)
         if rol == 1:  # si el rol seleccionado es 1(para estudiantes) se ejecuta
 
             valida = DatosUsuarios()
             validar = valida.validarContraseña(usuario, contraseña)
             if validar:  # si inicio es verdadero se ejecuta(si es verdadero significa que coinciden los datos)
-                messagebox.showinfo("Info", "Correcto")
-
+                ventanaUsuario2()
+                frame.destroy()
             else:
                 messagebox.showinfo("Info", "Usuario o contraseña incorrectos")
-
 
         elif rol == 2:  # si el rol es 2 (para administrador ) se ejecuta
 
@@ -129,11 +162,10 @@ def ventanaInicio(logo, logo2):
             messagebox.showinfo("Info", "Seleccione un Rol")
 
     frame = Frame()  # se crea un frame
-    frame2 = Frame()
+
     frame.pack()  # se coloca el frame dentro de la ventana
     rola = IntVar()  # variable para almacenar lo que el usuario selecciona como rol( lo selecciona en la interfaz)
     frame.config(width="800", height="500", bg="gray")  # se configura el frame ancho, alto y color de fondo
-    frame2.config(width="800", height="500", bg="gray")
 
     usuarioLabel = Label(frame, text="Usuario:")    # se crea una label(para colocar texto o imagenes) y se coloca en el frame
     usuarioLabel.config(font=("Berlin Sans FB", 18), bg="gray", fg="white")  #se configura fuente, bg color fondo y fg color letra
@@ -180,15 +212,12 @@ def ventanaInicio(logo, logo2):
     inicioButton.grid(row=7, column=1, columnspan=2, pady=20)# se coloca en la grilla o tabla
 
 
-
-root = Tk()  # Se crea una ventana
-root.title("LABS UNAL")  # se le da titulo a la ventana
-root.resizable(0, 0)  # no se permite que se alargue la ventana , con (1,1) se permite alargue vertical y horizontal
-root.iconbitmap("../Imagenes/Icono/iconoUnal.ico")  # se busca la imagen del icono
-logoUnal = PhotoImage(file="../Imagenes/Logos/logo.png")
-demoUnal = PhotoImage(file="../Imagenes/Logos/demo.png")
 ventanaInicio(logoUnal, demoUnal)
 root.mainloop()  #debe colocarse para que la interfaz se mantenga en ejecucion y no se cierre
+
+
+
+
 
 
 
