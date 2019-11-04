@@ -20,6 +20,10 @@ cantidadProductos = 0
 tiempoUsoProductos = 0
 multas = 0
 agregarProductos = False
+_USUARIO_ADMIN = "admin"
+_PASS_ADMIN = "programacion"
+rol = None
+
 
 """CREACION DE LA VENTANA"""
 
@@ -59,41 +63,43 @@ class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la ba
     conexion = None
     cursor = None
 
-    """cursor.execute("CREATE TABLE ESTUDIANTES(USUARIO VARCHAR(50) PRIMARY KEY, PASSWORD VARCHAR(50), NOMBRE VARCHAR(50))")
-    cursor.execute("INSERT INTO ESTUDIANTES VALUES('unal','programacion','predeterminado')")
-    conexion.commit()"""
-
     def conectar(self): #metodo que conecta con la  base de datos
         r = os.path.dirname(__file__)
-        source = r.replace('\\', "/") + "/BBDUsuarios"
+        source = r.replace('\\', "/") + "/Base Datos Estudiantes"
         self.conexion = sqlite3.connect(source)
         self.cursor = self.conexion.cursor()
 
     def agregarUsuario(self,usuario): #metodo que agrega un usuario a la base de datos
-
+        self.conectar()
         self.usuario = usuario.darUsuario()
         self.password = usuario.darContraseña()
         self.nombre = usuario.darNombre()
         self.expresion = str("INSERT INTO ESTUDIANTES VALUES('"+ self.usuario+"','"+self.password+"','"+self.nombre+"')")
         self.cursor.execute(self.expresion)
         self.conexion.commit()
+        self.conexion.close()
 
     def quitarUsuario(self,usuario): #metodo que quita el usuario dado de la base de datos
+        self.conectar()
         self.usuario = usuario.darUsuario()
         self.cursor.execute("DELETE FROM ESTUDIANTES WHERE USUARIO ='"+self.usuario+"'")
         self.conexion.commit()
+        self.conexion.close()
 
-    def validarContraseña(self,pUsuario, contraseña): #metodo que valida si el usuario y la contraseña coinciden con los exixtentes en la base de datos
+    def validarContraseña(self,pUsuario, pContraseña): #metodo que valida si el usuario y la contraseña coinciden con los exixtentes en la base de datos
                                                         #True si coincide, False si no
         self.retorno = None
         try:  #se captura una excepción en caso de que pUsuario no exista en la base de datos
+            self.conectar()
             self.cursor.execute("SELECT * FROM ESTUDIANTES WHERE USUARIO = '" + pUsuario + "'") #selecciona toda la fila con los datos de pUsuario
             self.estudiante = self.cursor.fetchall()  #convierte en una lista con un elemento tupla la fila anterior- eje: [(e,l,e,m,e,n,t)]
             self.estudianteTupla = self.estudiante[0]  #de la anterior lista, selecciona elemento 0 que es la tupla
-            if self.estudianteTupla[1]== contraseña:    #en la tupla se busca la contraseña que por el orden ingresado esta en 1 y se verifica si es igual a la dad como parametro
+            print(self.estudianteTupla[1])
+            if self.estudianteTupla[1]== pContraseña:    #en la tupla se busca la contraseña que por el orden ingresado esta en 1 y se verifica si es igual a la dad como parametro
                 self.retorno = True  #si coincide se retorna True
             else:
                 self.retorno = False
+            self.conexion.close()
         except:
             self.retorno = False   #retorna falso si se lanza el error por no existir el usuario
 
@@ -101,21 +107,14 @@ class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la ba
         return self.retorno
 
 
-
 def inicioSesion():   # funcion que dice si se inicio o no sesion(comprueba usuario y contraseña)
 
         if rol.get() == 1:    # si el rol seleccionado es 1(para estudiantes) se ejecuta
             usuario = usuarioEntry.get()   #se obtiene lo que se introdujo en la casilla de usuario en la interfaz
             contraseña = passEntry.get()   #se obtiene lo que se introdujo en la casilla de contraseña en la interfaz
-            inicio = False  # se inicializa variable el falso
-            contador = 0       # el contador va a subir +1 cada ver que se itere
-            for i in listaUsuarios:     # recorre cada elemento de de la lista con i
-                if i == usuario:        # comprueba si algun elemento de la lista es igual a lo que se introdujo en la casilla
-                    if listaContraseñas[contador] == contraseña: #comprueba si la contraseña introducida esta en la lista en la posicion que dice el contador
-                        inicio = True                   #si coincide inicio cambia de false a true
-                contador+=1  #aumenta el contador en cada iteracion
-
-            if inicio:   # si inicio es verdadero se ejecuta(si es verdadero significa que coinciden los datos)
+            valida = DatosUsuarios()
+            validar = valida.validarContraseña(usuario,contraseña)
+            if validar :   # si inicio es verdadero se ejecuta(si es verdadero significa que coinciden los datos)
                 messagebox.showinfo("Info", "Se inició sesión correctamente")  #funcion que manda una alerta con un mensaje
             else:
                 messagebox.showinfo("Info", "Usuario o contraseña incorrectos")
