@@ -10,17 +10,7 @@ import sqlite3  #librería para bases de datos
 from tkinter import *   #libreria para crear la interfaz
 from tkinter import messagebox
 
-"""DEFINICION DE VARIABLES"""
-#USUARIOS
-usuario = ""
-contraseña = ""
-_USUARIO_ADMIN = "admin"
-_PASS_ADMIN = "programacion"                # usuario y contraseña del administrador
-listaUsuarios = ["jhernandezga","anardilaa","davidMurcia","unal"]        # lista con todos los usuarios que existen
-listaContraseñas = ["jorge","andres","david","python"]             # lista con las contraseñas
-                                        #  la posicion del usuario en la lista debe ser la misma posicion de la contraseña
-rol = None      #rol usuario o estudiante --si rol recibe 1 es estudiante si recibe 2 es admin----se declara como none porque recibir valor mas adelante declarada como un objeto IntVar
-#PRODUCTOS = Herramientas
+
 nombreProducto = ""
 marcaProducto = ""
 modeloProducto =""
@@ -47,6 +37,71 @@ frame.config(width="800", height="500", bg="gray")  #se configura el frame ancho
 #APLICACION DE CICLOS PARA BUSQUEDA EN UNA LISTA
 #APLICACION DE CONDICIONALES
 #APLICACION OPERADORES ASIGNACIÓN, ARITMETICOS Y LÓGICOS
+
+class Usuarios:   #clase para la creacion de usuarios
+    usuario = ""
+    contraseña = ""
+    nombre =""
+
+    def __init__(self,pUsuario, pContraseña,pNombre):
+        self.usuario = pUsuario
+        self.contraseña = pContraseña
+        self.nombre = pNombre
+
+    def darContraseña(self):
+        return self.contraseña
+    def darUsuario(self):
+        return self.usuario
+    def darNombre(self):
+        return  self.nombre
+
+class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la base de datps
+    conexion = None
+    cursor = None
+
+    """cursor.execute("CREATE TABLE ESTUDIANTES(USUARIO VARCHAR(50) PRIMARY KEY, PASSWORD VARCHAR(50), NOMBRE VARCHAR(50))")
+    cursor.execute("INSERT INTO ESTUDIANTES VALUES('unal','programacion','predeterminado')")
+    conexion.commit()"""
+
+    def conectar(self): #metodo que conecta con la  base de datos
+        r = os.path.dirname(__file__)
+        source = r.replace('\\', "/") + "/BBDUsuarios"
+        self.conexion = sqlite3.connect(source)
+        self.cursor = self.conexion.cursor()
+
+    def agregarUsuario(self,usuario): #metodo que agrega un usuario a la base de datos
+
+        self.usuario = usuario.darUsuario()
+        self.password = usuario.darContraseña()
+        self.nombre = usuario.darNombre()
+        self.expresion = str("INSERT INTO ESTUDIANTES VALUES('"+ self.usuario+"','"+self.password+"','"+self.nombre+"')")
+        self.cursor.execute(self.expresion)
+        self.conexion.commit()
+
+    def quitarUsuario(self,usuario): #metodo que quita el usuario dado de la base de datos
+        self.usuario = usuario.darUsuario()
+        self.cursor.execute("DELETE FROM ESTUDIANTES WHERE USUARIO ='"+self.usuario+"'")
+        self.conexion.commit()
+
+    def validarContraseña(self,pUsuario, contraseña): #metodo que valida si el usuario y la contraseña coinciden con los exixtentes en la base de datos
+                                                        #True si coincide, False si no
+        self.retorno = None
+        try:  #se captura una excepción en caso de que pUsuario no exista en la base de datos
+            self.cursor.execute("SELECT * FROM ESTUDIANTES WHERE USUARIO = '" + pUsuario + "'") #selecciona toda la fila con los datos de pUsuario
+            self.estudiante = self.cursor.fetchall()  #convierte en una lista con un elemento tupla la fila anterior- eje: [(e,l,e,m,e,n,t)]
+            self.estudianteTupla = self.estudiante[0]  #de la anterior lista, selecciona elemento 0 que es la tupla
+            if self.estudianteTupla[1]== contraseña:    #en la tupla se busca la contraseña que por el orden ingresado esta en 1 y se verifica si es igual a la dad como parametro
+                self.retorno = True  #si coincide se retorna True
+            else:
+                self.retorno = False
+        except:
+            self.retorno = False   #retorna falso si se lanza el error por no existir el usuario
+
+
+        return self.retorno
+
+
+
 def inicioSesion():   # funcion que dice si se inicio o no sesion(comprueba usuario y contraseña)
 
         if rol.get() == 1:    # si el rol seleccionado es 1(para estudiantes) se ejecuta
@@ -129,77 +184,6 @@ inicioButton.grid(row=7, column=1, columnspan=2, pady=20)# se coloca en la grill
 
 root.mainloop()  #debe colocarse para que la interfaz se mantenga en ejecucion y no se cierre
 
-
-
-"""CÓDIGO EN DESARROLLO"""
-"""Para versiones posteriores se piensa implementar a los usuarios, los productos y los laboratorios como
-objetos para una mayor facilidad en la manipulacion de los datos, tanto para la funcionalidad como para su implementación
-gráfica. Igualmente, para garantizar la permanencia de los datos se está intentando  guardar en una tabla de sqlite los
-usuarios y contraseñas... de momento el siguiente código es un avance de lo que se quiere hacer, pero aún no existe conectividad
-con la interfaz de usuario
-"""
-
-class Usuarios:   #clase para la creacion de usuarios
-    usuario = ""
-    contraseña = ""
-    nombre =""
-
-    def __init__(self,pUsuario, pContraseña,pNombre):
-        self.usuario = pUsuario
-        self.contraseña = pContraseña
-        self.nombre = pNombre
-
-    def darContraseña(self):
-        return self.contraseña
-    def darUsuario(self):
-        return self.usuario
-    def darNombre(self):
-        return  self.nombre
-
-class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la base de datps
-    conexion = None
-    cursor = None
-
-    #cursor.execute("CREATE TABLE ESTUDIANTES(USUARIO VARCHAR(50) PRIMARY KEY, PASSWORD VARCHAR(50), NOMBRE VARCHAR(50))")
-    #cursor.execute("INSERT INTO ESTUDIANTES VALUES('unal','programacion','predeterminado')")
-    #conexion.commit()
-
-    def conectar(self): #metodo que conecta con la  base de datos
-        r = os.path.dirname(__file__)
-        source = r.replace('\\', "/") + "/BBDUsuarios"
-        self.conexion = sqlite3.connect(source)
-        self.cursor = self.conexion.cursor()
-
-    def agregarUsuario(self,usuario): #metodo que agrega un usuario a la base de datos
-
-        self.usuario = usuario.darUsuario()
-        self.password = usuario.darContraseña()
-        self.nombre = usuario.darNombre()
-        self.expresion = str("INSERT INTO ESTUDIANTES VALUES('"+ self.usuario+"','"+self.password+"','"+self.nombre+"')")
-        self.cursor.execute(self.expresion)
-        self.conexion.commit()
-
-    def quitarUsuario(self,usuario): #metodo que quita el usuario dado de la base de datos
-        self.usuario = usuario.darUsuario()
-        self.cursor.execute("DELETE FROM ESTUDIANTES WHERE USUARIO ='"+self.usuario+"'")
-        self.conexion.commit()
-
-    def validarContraseña(self,pUsuario, contraseña): #metodo que valida si el usuario y la contraseña coinciden con los exixtentes en la base de datos
-                                                        #True si coincide, False si no
-        self.retorno = None
-        try:  #se captura una excepción en caso de que pUsuario no exista en la base de datos
-            self.cursor.execute("SELECT * FROM ESTUDIANTES WHERE USUARIO = '" + pUsuario + "'") #selecciona toda la fila con los datos de pUsuario
-            self.estudiante = self.cursor.fetchall()  #convierte en una lista con un elemento tupla la fila anterior- eje: [(e,l,e,m,e,n,t)]
-            self.estudianteTupla = self.estudiante[0]  #de la anterior lista, selecciona elemento 0 que es la tupla
-            if self.estudianteTupla[1]== contraseña:    #en la tupla se busca la contraseña que por el orden ingresado esta en 1 y se verifica si es igual a la dad como parametro
-                self.retorno = True  #si coincide se retorna True
-            else:
-                self.retorno = False
-        except:
-            self.retorno = False   #retorna falso si se lanza el error por no existir el usuario
-
-
-        return self.retorno
 
 """usuario1 =Usuarios("jhernandezga","unal","Jorge Hernandez")
 data = DatosUsuarios()
