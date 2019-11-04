@@ -11,7 +11,6 @@ from tkinter import *   #libreria para crear la interfaz
 from tkinter import messagebox
 
 """DEFINICION DE VARIABLES"""
-print("holisss")
 #USUARIOS
 usuario = ""
 contraseña = ""
