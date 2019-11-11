@@ -32,6 +32,13 @@ root.resizable(0, 0)  # no se permite que se alargue la ventana , con (1,1) se p
 root.iconbitmap("../Imagenes/Icono/iconoUnal.ico")  # se busca la imagen del icono
 logoUnal = PhotoImage(file="../Imagenes/Logos/logo.png")
 demoUnal = PhotoImage(file="../Imagenes/Logos/demo.png")
+fuente = PhotoImage(file="../Imagenes/ImagenEquipos/fuente.png")
+generador = PhotoImage(file="../Imagenes/ImagenEquipos/generador.png")
+osciloscopio = PhotoImage(file="../Imagenes/ImagenEquipos/osciloscopio.png")
+caiman = PhotoImage(file="../Imagenes/ImagenEquipos/caiman.png")
+multimetro = PhotoImage(file="../Imagenes/ImagenEquipos/multimetro.png")
+puntas = PhotoImage(file="../Imagenes/ImagenEquipos/puntas.png")
+
 
 class Usuarios:   #clase para la creacion de usuarios
     usuario = ""
@@ -49,7 +56,68 @@ class Usuarios:   #clase para la creacion de usuarios
         return self.usuario
     def darNombre(self):
         return  self.nombre
+class Equipos:
+    marca = ""
+    modelo = ""
+    nombre = ""
+    cantidad = 0
+    def __init__(self,pNombre, pMarca,pModelo,pCantidad):
+        self.marca = pMarca
+        self.modelo = pModelo
+        self.nombre = pNombre
+        self.cantidad = pCantidad
 
+    def darNombre(self):
+        return self.nombre
+    def darModelo(self):
+        return self.modelo
+    def darMarca(self):
+        return self.marca
+    def darCantidad(self):
+        return self.cantidad
+class Laboratorio:
+
+    equipos = []
+    lab = 0
+    a = Equipos("Multimetro", "fluke", "87-v", 20)
+    b = Equipos("Osciloscopio", "Rigol", "DS1054", 15)
+    c = Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25)
+    d = Equipos("Generador de Señales", "Electroni", "FY3224S", 15)
+    e = Equipos("Cable Banana-Caiman", "Genérico", "NA", 100)
+    f = Equipos("Fuente", "Genérico", "NA", 100)
+    equipos.append(a)
+    equipos.append(b)
+    equipos.append(c)
+    equipos.append(d)
+    equipos.append(e)
+    equipos.append(f)
+    nombre1 = ""
+    def __init__(self, pNombre, lab):
+        self.nombrel = pNombre
+        self.lab = lab
+
+    def darNombre(self):
+        return self.nombrel
+    def darCantidadPorNombre(self,pNombre):
+        xCantidad = 0
+        for i in self.equipos:
+             if i.darNombre() == pNombre and i != None:
+                xCantidad = i.darCantidad()
+        return xCantidad
+    def reservar(self,pNombre):
+        reserva = False
+        for i in self.equipos:
+            if i.darNombre() == pNombre and i.darCantidad() > 0 and i != None:
+                i.darCantidad -= 1
+                reserva = True
+        return reserva
+    def devolver(self,pNombre):
+        devuelve = False
+        for i in self.equipos:
+            if i.darNombre() == pNombre and i != None:
+                i.darCantidad += 1
+                devuelve = True
+        return devuelve
 class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la base de datps
     conexion = None
     cursor = None
@@ -85,7 +153,6 @@ class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la ba
             self.cursor.execute("SELECT * FROM ESTUDIANTES WHERE USUARIO = '" + pUsuario + "'") #selecciona toda la fila con los datos de pUsuario
             self.estudiante = self.cursor.fetchall()  #convierte en una lista con un elemento tupla la fila anterior- eje: [(e,l,e,m,e,n,t)]
             self.estudianteTupla = self.estudiante[0]  #de la anterior lista, selecciona elemento 0 que es la tupla
-            print(self.estudianteTupla[1])
             if self.estudianteTupla[1]== pContraseña:    #en la tupla se busca la contraseña que por el orden ingresado esta en 1 y se verifica si es igual a la dad como parametro
                 self.retorno = True  #si coincide se retorna True
             else:
@@ -96,6 +163,8 @@ class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la ba
 
 
         return self.retorno
+
+labElectronica = Laboratorio("Laboratiorio de Ingeniería Eléctrica y Electrónica",1)
 
 def ventanaUsuario3():
 
@@ -119,6 +188,7 @@ def ventanaUsuario2():
 
     frame = Frame()
     frame.pack()
+    labElectronica.darNombre()
     def siguiente():
         ventanaUsuario3()
         frame.destroy()
@@ -128,10 +198,68 @@ def ventanaUsuario2():
                           command=siguiente)  # command es para que llame a la funcion cuando se presione el boton
     siguienteButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                         fg="white")  # se configura el relieve colore y fuente
-    siguienteButton.grid(row=7, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
-    labelImagen1 = Label(frame, image=logoUnal)  # Se crea un label y se le dice que va a contener la imagen logoUnal
-    labelImagen1.config(bg="White")
-    labelImagen1.grid(row=1, column=1)
+    siguienteButton.grid(row=7, column=2, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+
+    labelgenerador = Label(frame, image= generador ) # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelgenerador.config(bg="White")
+    labelgenerador.grid(row=2, column=1)
+
+    buttonGenerador = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonGenerador.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    buttonGenerador.grid(row=3, column=1, pady=5)  # se coloca en la grilla o tabla
+
+    labelOsciloscopio = Label(frame, image=osciloscopio) # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelOsciloscopio.config(bg="White")
+    labelOsciloscopio.grid(row=2, column=2)
+
+    buttonOsciloscopio = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonOsciloscopio.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    buttonOsciloscopio.grid(row=3, column=2, pady=5,padx = 10)  # se coloca en la grilla o tabla
+
+
+    labelFuente = Label(frame, image=fuente)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelFuente.config(bg="White")
+    labelFuente.grid(row=2, column=3)
+
+    buttonFuente = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonFuente.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    buttonFuente.grid(row=3, column=3,  pady=5,padx =10)  # se coloca en la grilla o tabla
+
+    labelCaiman = Label(frame, image=caiman)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelCaiman.config(bg="White")
+    labelCaiman.grid(row=5, column=1)
+
+    buttonCaiman = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonCaiman.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    buttonCaiman.grid(row=6, column=1,  pady=5,padx =10)  # se coloca en la grilla o tabla
+
+    labelPuntas = Label(frame, image=puntas)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelPuntas.config(bg="White")
+    labelPuntas.grid(row=5, column=2)
+
+    buttonPuntas = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonPuntas.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    buttonPuntas.grid(row=6, column=2, pady=5)  # se coloca en la grilla o tabla
+
+    labelMultimetro = Label(frame, image= multimetro)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelMultimetro.config(bg="White")
+    labelMultimetro.grid(row=5, column=3)
+
+    buttonMultímetro = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonMultímetro.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    buttonMultímetro.grid(row=6, column=3, pady=5)  # se coloca en la grilla o tabla
 
 def ventanaInicio(logo, logo2):
     def inicioSesion():
