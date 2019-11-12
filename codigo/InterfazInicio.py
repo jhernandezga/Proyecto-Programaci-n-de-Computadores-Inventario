@@ -32,6 +32,7 @@ root.resizable(0, 0)  # no se permite que se alargue la ventana , con (1,1) se p
 root.iconbitmap("../Imagenes/Icono/iconoUnal.ico")  # se busca la imagen del icono
 logoUnal = PhotoImage(file="../Imagenes/Logos/logo.png")
 demoUnal = PhotoImage(file="../Imagenes/Logos/demo.png")
+bannerLab = PhotoImage(file="../Imagenes/Logos/BannerLab.png")
 fuente = PhotoImage(file="../Imagenes/ImagenEquipos/fuente.png")
 generador = PhotoImage(file="../Imagenes/ImagenEquipos/generador.png")
 osciloscopio = PhotoImage(file="../Imagenes/ImagenEquipos/osciloscopio.png")
@@ -75,16 +76,19 @@ class Equipos:
         return self.marca
     def darCantidad(self):
         return self.cantidad
+    def reservarEquipo(self):
+        self.cantidad -=1
+
 class Laboratorio:
 
     equipos = []
     lab = 0
-    a = Equipos("Multimetro", "fluke", "87-v", 20)
+    f = Equipos("Multimetro", "fluke", "87-v", 20)
     b = Equipos("Osciloscopio", "Rigol", "DS1054", 15)
-    c = Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25)
-    d = Equipos("Generador de Señales", "Electroni", "FY3224S", 15)
-    e = Equipos("Cable Banana-Caiman", "Genérico", "NA", 100)
-    f = Equipos("Fuente", "Genérico", "NA", 100)
+    e = Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25)
+    a = Equipos("Generador de Señales", "Electroni", "FY3224S", 25)
+    d = Equipos("Cable Banana-Caiman", "Genérico", "NA", 100)
+    c = Equipos("Fuente", "Genérico", "NA", 100)
     equipos.append(a)
     equipos.append(b)
     equipos.append(c)
@@ -98,17 +102,19 @@ class Laboratorio:
 
     def darNombre(self):
         return self.nombrel
+    def darNombreEquipo(self,indice):
+        return self.equipos[indice].darNombre()
     def darCantidadPorNombre(self,pNombre):
         xCantidad = 0
         for i in self.equipos:
-             if i.darNombre() == pNombre and i != None:
+             if i.darNombre() == pNombre :
                 xCantidad = i.darCantidad()
         return xCantidad
     def reservar(self,pNombre):
         reserva = False
-        for i in self.equipos:
-            if i.darNombre() == pNombre and i.darCantidad() > 0 and i != None:
-                i.darCantidad -= 1
+        for i in range(len(self.equipos)):
+            if self.equipos[i].darNombre() == pNombre and self.equipos[i].darCantidad() > 0:
+                self.equipos[i].reservarEquipo()
                 reserva = True
         return reserva
     def devolver(self,pNombre):
@@ -187,79 +193,145 @@ def ventanaUsuario3():
 def ventanaUsuario2():
 
     frame = Frame()
+    frame.config(bg = "White")
     frame.pack()
-    labElectronica.darNombre()
+    nombre = []
+    mostrar = [StringVar(),StringVar(),StringVar(),StringVar(),StringVar(),StringVar()]
+
+    for i in range(len(mostrar)):
+        nombre.append(labElectronica.darNombreEquipo(i))
+
+    for i in range(len(mostrar)):
+        mostrar[i].set("Disponibles: "+ str(labElectronica.darCantidadPorNombre(nombre[i])))
     def siguiente():
         ventanaUsuario3()
         frame.destroy()
+    def quitarACantidad(indice):
+        labElectronica.reservar(nombre[indice])
+        mostrar[indice].set("Disponibles: " + str(labElectronica.darCantidadPorNombre(nombre[indice])))
 
-    siguienteButton = Button(frame, text="Siguiente1", width=20, height=1, activeforeground="#96D646",
+    labelBanner = Label(frame, image= bannerLab)  # Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelBanner.config(bg="White")
+    labelBanner.grid(row=1, column=1 , columnspan = 3)
+
+    labelNombreGen = Label(frame, text=nombre[0])
+    labelNombreGen.config( font=("Berlin Sans FB", 16), fg = "#540C21", bg ="White")
+    labelNombreGen.grid(row=2, column=1)
+
+    labelNombreOs = Label(frame, text=nombre[1])
+    labelNombreOs.config( font=("Berlin Sans FB", 16), fg = "#540C21", bg ="White")
+    labelNombreOs.grid(row=2, column=2)
+
+    labelNombreFu = Label(frame, text=nombre[2])
+    labelNombreFu.config( font=("Berlin Sans FB", 16), fg = "#540C21", bg ="White")
+    labelNombreFu.grid(row=2, column=3)
+
+    labelNombreCa = Label(frame, text=nombre[3])
+    labelNombreCa.config( font=("Berlin Sans FB", 16), fg = "#540C21", bg ="White")
+    labelNombreCa.grid(row=6, column=1)
+
+    labelNombreSo = Label(frame, text=nombre[4])
+    labelNombreSo.config( font=("Berlin Sans FB", 16), fg = "#540C21", bg ="White")
+    labelNombreSo.grid(row=6, column=2)
+
+    labelNombreMu = Label(frame, text=nombre[5])
+    labelNombreMu.config( font=("Berlin Sans FB", 16), fg = "#540C21", bg ="White")
+    labelNombreMu.grid(row=6, column=3)
+
+    labelCantidadGen = Label(frame, textvariable=mostrar[0])
+    labelCantidadGen.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
+    labelCantidadGen.grid(row=4, column=1)
+
+    labelCantidadOs = Label(frame, textvariable=mostrar[1])
+    labelCantidadOs.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
+    labelCantidadOs.grid(row=4, column=2)
+
+    labelCantidadFu = Label(frame, textvariable=mostrar[2])
+    labelCantidadFu.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
+    labelCantidadFu.grid(row=4, column=3)
+
+    labelCantidadCa = Label(frame, textvariable=mostrar[3])
+    labelCantidadCa.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
+    labelCantidadCa.grid(row=8, column=1)
+
+    labelCantidadSo = Label(frame, textvariable=mostrar[4])
+    labelCantidadSo.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
+    labelCantidadSo.grid(row=8, column=2)
+
+    labelCantidadMu = Label(frame, textvariable=mostrar[5])
+    labelCantidadMu.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
+    labelCantidadMu.grid(row=8, column=3)
+
+
+
+    siguienteButton = Button(frame, text="Siguiente1", width=20, height=1, activeforeground="#540C21",
                           activebackground="white",
                           command=siguiente)  # command es para que llame a la funcion cuando se presione el boton
-    siguienteButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+    siguienteButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                         fg="white")  # se configura el relieve colore y fuente
-    siguienteButton.grid(row=7, column=2, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+    siguienteButton.grid(row=10, column=2, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+
 
     labelgenerador = Label(frame, image= generador ) # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelgenerador.config(bg="White")
-    labelgenerador.grid(row=2, column=1)
+    labelgenerador.grid(row=3, column=1)
 
-    buttonGenerador = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonGenerador = Button(frame, text="Reservar", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white", command = lambda :quitarACantidad(0))  # command es para que llame a la funcion cuando se presione el boton
     buttonGenerador.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
-    buttonGenerador.grid(row=3, column=1, pady=5)  # se coloca en la grilla o tabla
+    buttonGenerador.grid(row=5, column=1, pady=5)  # se coloca en la grilla o tabla
 
     labelOsciloscopio = Label(frame, image=osciloscopio) # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelOsciloscopio.config(bg="White")
-    labelOsciloscopio.grid(row=2, column=2)
+    labelOsciloscopio.grid(row=3, column=2)
 
-    buttonOsciloscopio = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonOsciloscopio = Button(frame, text="Reservar", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white", command = lambda :quitarACantidad(1))  # command es para que llame a la funcion cuando se presione el boton
     buttonOsciloscopio.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
-    buttonOsciloscopio.grid(row=3, column=2, pady=5,padx = 10)  # se coloca en la grilla o tabla
+    buttonOsciloscopio.grid(row=5, column=2, pady=5,padx = 10)  # se coloca en la grilla o tabla
 
 
     labelFuente = Label(frame, image=fuente)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelFuente.config(bg="White")
-    labelFuente.grid(row=2, column=3)
+    labelFuente.grid(row=3, column=3)
 
-    buttonFuente = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonFuente = Button(frame, text="Reservar", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white", command = lambda :quitarACantidad(2))  # command es para que llame a la funcion cuando se presione el boton
     buttonFuente.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
-    buttonFuente.grid(row=3, column=3,  pady=5,padx =10)  # se coloca en la grilla o tabla
+    buttonFuente.grid(row=5, column=3,  pady=5,padx =10)  # se coloca en la grilla o tabla
 
     labelCaiman = Label(frame, image=caiman)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelCaiman.config(bg="White")
-    labelCaiman.grid(row=5, column=1)
+    labelCaiman.grid(row=7, column=1)
 
-    buttonCaiman = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonCaiman = Button(frame, text="Reservar", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white", command = lambda :quitarACantidad(3))  # command es para que llame a la funcion cuando se presione el boton
     buttonCaiman.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
-    buttonCaiman.grid(row=6, column=1,  pady=5,padx =10)  # se coloca en la grilla o tabla
+    buttonCaiman.grid(row=9, column=1,  pady=5,padx =10)  # se coloca en la grilla o tabla
 
     labelPuntas = Label(frame, image=puntas)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelPuntas.config(bg="White")
-    labelPuntas.grid(row=5, column=2)
+    labelPuntas.grid(row=7, column=2)
 
-    buttonPuntas = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonPuntas = Button(frame, text="Reservar", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white", command = lambda :quitarACantidad(4))  # command es para que llame a la funcion cuando se presione el boton
     buttonPuntas.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
-    buttonPuntas.grid(row=6, column=2, pady=5)  # se coloca en la grilla o tabla
+    buttonPuntas.grid(row=9, column=2, pady=5)  # se coloca en la grilla o tabla
 
     labelMultimetro = Label(frame, image= multimetro)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelMultimetro.config(bg="White")
-    labelMultimetro.grid(row=5, column=3)
+    labelMultimetro.grid(row=7, column=3)
 
-    buttonMultímetro = Button(frame, text="Añadir", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white")  # command es para que llame a la funcion cuando se presione el boton
+    buttonMultímetro = Button(frame, text="Reservar", width=20, height=1, activeforeground="#96D646",
+                             activebackground="white", command = lambda :quitarACantidad(5))  # command es para que llame a la funcion cuando se presione el boton
     buttonMultímetro.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
-    buttonMultímetro.grid(row=6, column=3, pady=5)  # se coloca en la grilla o tabla
+    buttonMultímetro.grid(row=9, column=3, pady=5)  # se coloca en la grilla o tabla
 
 def ventanaInicio(logo, logo2):
     def inicioSesion():
