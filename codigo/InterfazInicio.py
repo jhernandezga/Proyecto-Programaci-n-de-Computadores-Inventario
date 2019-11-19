@@ -40,11 +40,34 @@ caiman = PhotoImage(file="../Imagenes/ImagenEquipos/caiman.png")
 multimetro = PhotoImage(file="../Imagenes/ImagenEquipos/multimetro.png")
 puntas = PhotoImage(file="../Imagenes/ImagenEquipos/puntas.png")
 
+sesion = -1
+class DatosUsuarios:
 
+    global sesion
+    global indiceSesion
+    def agregarUsuario(self,pUsuario,pContraseña,pNombre):
+        usuarios.append(Usuarios(pUsuario,pContraseña,pNombre))
+    def quitarUsuario(self,usuario):
+        pass
+
+    def validarContraseña(self,pUsuario, pContraseña): #metodo que valida si el usuario y la contraseña coinciden con los exixtentes en la base de datos
+        global  sesion
+        global indiceSesion
+        self.retorno = False
+        sesion = -1
+        for i in usuarios:
+            sesion += 1
+            if i.darUsuario() == pUsuario and i.darContraseña() == pContraseña:
+                self.retorno = True
+                break
+        indiceSesion =sesion
+        return self.retorno
 class Usuarios:   #clase para la creacion de usuarios
     usuario = ""
     contraseña = ""
     nombre =""
+    equiposUso = []
+    cantida = 0
 
     def __init__(self,pUsuario, pContraseña,pNombre):
         self.usuario = pUsuario
@@ -57,6 +80,11 @@ class Usuarios:   #clase para la creacion de usuarios
         return self.usuario
     def darNombre(self):
         return  self.nombre
+    def usarEquipo(self, equipo):
+        self.equiposUso.append(equipo)
+        self.cantida += 1
+    def cantidad(self):
+        return len(self.equiposUso)
 class Equipos:
     marca = ""
     modelo = ""
@@ -78,24 +106,11 @@ class Equipos:
         return self.cantidad
     def reservarEquipo(self):
         self.cantidad -=1
-
 class Laboratorio:
-
-    equipos = []
+    global indiceSesion
     lab = 0
-    f = Equipos("Multimetro", "fluke", "87-v", 20)
-    b = Equipos("Osciloscopio", "Rigol", "DS1054", 15)
-    e = Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25)
-    a = Equipos("Generador de Señales", "Electroni", "FY3224S", 25)
-    d = Equipos("Cable Banana-Caiman", "Genérico", "NA", 100)
-    c = Equipos("Fuente", "Genérico", "NA", 100)
-    equipos.append(a)
-    equipos.append(b)
-    equipos.append(c)
-    equipos.append(d)
-    equipos.append(e)
-    equipos.append(f)
     nombre1 = ""
+
     def __init__(self, pNombre, lab):
         self.nombrel = pNombre
         self.lab = lab
@@ -103,75 +118,60 @@ class Laboratorio:
     def darNombre(self):
         return self.nombrel
     def darNombreEquipo(self,indice):
-        return self.equipos[indice].darNombre()
+        return equipos[indice].darNombre()
     def darCantidadPorNombre(self,pNombre):
         xCantidad = 0
-        for i in self.equipos:
+        for i in equipos:
              if i.darNombre() == pNombre :
                 xCantidad = i.darCantidad()
         return xCantidad
     def reservar(self,pNombre):
         reserva = False
-        for i in range(len(self.equipos)):
-            if self.equipos[i].darNombre() == pNombre and self.equipos[i].darCantidad() > 0:
-                self.equipos[i].reservarEquipo()
+        for i in range(len(equipos)):
+            if equipos[i].darNombre() == pNombre and equipos[i].darCantidad() > 0:
+                equipos[i].reservarEquipo()
+                usuarios[indiceSesion].usarEquipo(self.darNombreEquipo(pNombre))
                 reserva = True
+        print("user 1: ", usuarios[0].cantidad())
+        print("user 2: ", usuarios[1].cantidad())
         return reserva
     def devolver(self,pNombre):
         devuelve = False
-        for i in self.equipos:
+        for i in equipos:
             if i.darNombre() == pNombre and i != None:
                 i.darCantidad += 1
                 devuelve = True
         return devuelve
-class DatosUsuarios:  #Clase para la conexión y manipulación de datos de la base de datps
-    conexion = None
-    cursor = None
+    def darEquipoPorNombre(self,pNombre):
+        equip = None
+        for i in equipos:
+            if i.darNombre() == pNombre:
+                equip = i
+        return equip
 
-    def conectar(self): #metodo que conecta con la  base de datos
-        r = os.path.dirname(__file__)
-        source = r.replace('\\', "/") + "/Base Datos Estudiantes"
-        self.conexion = sqlite3.connect(source)
-        self.cursor = self.conexion.cursor()
+usuarios = []
+equipos = []
+datos = DatosUsuarios()
+indiceSesion = sesion
 
-    def agregarUsuario(self,usuario): #metodo que agrega un usuario a la base de datos
-        self.conectar()
-        self.usuario = usuario.darUsuario()
-        self.password = usuario.darContraseña()
-        self.nombre = usuario.darNombre()
-        self.expresion = str("INSERT INTO ESTUDIANTES VALUES('"+ self.usuario+"','"+self.password+"','"+self.nombre+"')")
-        self.cursor.execute(self.expresion)
-        self.conexion.commit()
-        self.conexion.close()
-
-    def quitarUsuario(self,usuario): #metodo que quita el usuario dado de la base de datos
-        self.conectar()
-        self.usuario = usuario.darUsuario()
-        self.cursor.execute("DELETE FROM ESTUDIANTES WHERE USUARIO ='"+self.usuario+"'")
-        self.conexion.commit()
-        self.conexion.close()
-
-    def validarContraseña(self,pUsuario, pContraseña): #metodo que valida si el usuario y la contraseña coinciden con los exixtentes en la base de datos
-                                                        #True si coincide, False si no
-        self.retorno = None
-        try:  #se captura una excepción en caso de que pUsuario no exista en la base de datos
-            self.conectar()
-            self.cursor.execute("SELECT * FROM ESTUDIANTES WHERE USUARIO = '" + pUsuario + "'") #selecciona toda la fila con los datos de pUsuario
-            self.estudiante = self.cursor.fetchall()  #convierte en una lista con un elemento tupla la fila anterior- eje: [(e,l,e,m,e,n,t)]
-            self.estudianteTupla = self.estudiante[0]  #de la anterior lista, selecciona elemento 0 que es la tupla
-            if self.estudianteTupla[1]== pContraseña:    #en la tupla se busca la contraseña que por el orden ingresado esta en 1 y se verifica si es igual a la dad como parametro
-                self.retorno = True  #si coincide se retorna True
-            else:
-                self.retorno = False
-            self.conexion.close()
-        except:
-            self.retorno = False   #retorna falso si se lanza el error por no existir el usuario
+usuarios.append(Usuarios("jhernandezga","unal","jorge"))
+usuarios.append(Usuarios("jorge","unal","andres"))
 
 
-        return self.retorno
+f = Equipos("Multimetro", "fluke", "87-v", 20)
+b = Equipos("Osciloscopio", "Rigol", "DS1054", 15)
+e = Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25)
+a = Equipos("Generador de Señales", "Electroni", "FY3224S", 25)
+d = Equipos("Cable Banana-Caiman", "Genérico", "NA", 100)
+c = Equipos("Fuente", "Genérico", "NA", 100)
+equipos.append(a)
+equipos.append(b)
+equipos.append(c)
+equipos.append(d)
+equipos.append(e)
+equipos.append(f)
 
 labElectronica = Laboratorio("Laboratiorio de Ingeniería Eléctrica y Electrónica",1)
-
 def ventanaUsuario3():
 
     frame = Frame()
@@ -189,7 +189,6 @@ def ventanaUsuario3():
     labelImagen1 = Label(frame, image=demoUnal)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelImagen1.config(bg="White")
     labelImagen1.grid(row=1, column=1)
-
 def ventanaUsuario2():
 
     frame = Frame()
@@ -209,6 +208,10 @@ def ventanaUsuario2():
     def quitarACantidad(indice):
         labElectronica.reservar(nombre[indice])
         mostrar[indice].set("Disponibles: " + str(labElectronica.darCantidadPorNombre(nombre[indice])))
+
+    def cerrar():
+        ventanaInicio()
+        frame.destroy()
 
     labelBanner = Label(frame, image= bannerLab)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelBanner.config(bg="White")
@@ -271,6 +274,13 @@ def ventanaUsuario2():
                         fg="white")  # se configura el relieve colore y fuente
     siguienteButton.grid(row=10, column=2, columnspan=2, pady=20)  # se coloca en la grilla o tabla
 
+    cierraButton = Button(frame, text="Cerra", width=20, height=1, activeforeground="#540C21",
+                             activebackground="white",
+                             command=cerrar ) # command es para que llame a la funcion cuando se presione el boton
+    cierraButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")  # se configura el relieve colore y fuente
+    cierraButton.grid(row=10, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+
 
     labelgenerador = Label(frame, image= generador ) # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelgenerador.config(bg="White")
@@ -332,18 +342,16 @@ def ventanaUsuario2():
     buttonMultímetro.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
     buttonMultímetro.grid(row=9, column=3, pady=5)  # se coloca en la grilla o tabla
+def ventanaInicio():
 
-def ventanaInicio(logo, logo2):
     def inicioSesion():
-
         usuario = usuarioEntry.get()
         contraseña = passEntry.get()
         rol = rola.get()
 
         if rol == 1:  # si el rol seleccionado es 1(para estudiantes) se ejecuta
 
-            valida = DatosUsuarios()
-            validar = valida.validarContraseña(usuario, contraseña)
+            validar =datos.validarContraseña(usuario, contraseña)
             if validar:  # si inicio es verdadero se ejecuta(si es verdadero significa que coinciden los datos)
                 ventanaUsuario2()
                 frame.destroy()
@@ -384,11 +392,11 @@ def ventanaInicio(logo, logo2):
     passEntry.grid(row=4, column=2, padx=10, pady=20, sticky="w")
 
      #busca una imagen en la ruta dada y la almacena en logoUnal
-    labelImagen1 = Label(frame, image=logo)  #Se crea un label y se le dice que va a contener la imagen logoUnal
+    labelImagen1 = Label(frame, image=logoUnal)  #Se crea un label y se le dice que va a contener la imagen logoUnal
     labelImagen1.config(bg="White")
     labelImagen1.grid(row=1, column=1)
 
-    labelImagen2 = Label(frame, image=logo2)
+    labelImagen2 = Label(frame, image=demoUnal)
     labelImagen2.config(bg="White")
     labelImagen2.grid(row=1, column=2)
 
@@ -411,8 +419,7 @@ def ventanaInicio(logo, logo2):
     inicioButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15), fg="white") #se configura el relieve colore y fuente
     inicioButton.grid(row=7, column=1, columnspan=2, pady=20)# se coloca en la grilla o tabla
 
-
-ventanaInicio(logoUnal, demoUnal)
+ventanaInicio()
 root.mainloop()  #debe colocarse para que la interfaz se mantenga en ejecucion y no se cierre
 
 
