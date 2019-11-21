@@ -68,6 +68,12 @@ class Usuarios:   #clase para la creacion de usuarios
     nombre =""
     equiposUso = []
     cantida = 0
+    multimetro = 0
+    osciloscopio = 0
+    sonda = 0
+    generador = 0
+    cable = 0
+    fuente = 0
 
     def __init__(self,pUsuario, pContraseña,pNombre):
         self.usuario = pUsuario
@@ -80,11 +86,50 @@ class Usuarios:   #clase para la creacion de usuarios
         return self.usuario
     def darNombre(self):
         return  self.nombre
-    def usarEquipo(self, equipo):
-        self.equiposUso.append(equipo)
+    def usarEquipo(self, tipo):
+        if tipo == "Generador de Señales":
+            self.generador += 1
+        elif tipo == "Multimetro":
+            self.multimetro += 1
+        elif tipo == "Osciloscopio":
+            self.osciloscopio += 1
+        elif tipo == "Sonda Osciloscopio":
+            self.sonda += 1
+        elif tipo == "Cable Banana-Caiman":
+            self.cable += 1
+        else:
+            self.fuente += 1
         self.cantida += 1
     def cantidad(self):
-        return len(self.equiposUso)
+        return self.cantida
+    def cantidadEquipo(self, tipo):
+        if tipo == "Generador de Señales":
+            return  self.generador
+        elif tipo == "Multimetro":
+            return self.multimetro
+        elif tipo == "Osciloscopio":
+            return self.osciloscopio
+        elif tipo == "Sonda Osciloscopio":
+            return self.sonda
+        elif tipo == "Cable Banana-Caiman":
+            return  self.cable
+        else:
+            return  self.fuente
+    def devolverEquipo(self, tipo):
+        if tipo == "Generador de Señales":
+            self.generador -= 1
+        elif tipo == "Multimetro":
+            self.multimetro -= 1
+        elif tipo == "Osciloscopio":
+            self.osciloscopio -= 1
+        elif tipo == "Sonda Osciloscopio":
+            self.sonda -= 1
+        elif tipo == "Cable Banana-Caiman":
+            self.cable -= 1
+        else:
+            self.fuente -= 1
+        self.cantida -= 1
+
 class Equipos:
     marca = ""
     modelo = ""
@@ -106,6 +151,8 @@ class Equipos:
         return self.cantidad
     def reservarEquipo(self):
         self.cantidad -=1
+    def devolverEquipo(self):
+        self.cantidad +=1
 class Laboratorio:
     global indiceSesion
     lab = 0
@@ -130,7 +177,7 @@ class Laboratorio:
         for i in range(len(equipos)):
             if equipos[i].darNombre() == pNombre and equipos[i].darCantidad() > 0:
                 equipos[i].reservarEquipo()
-                usuarios[indiceSesion].usarEquipo(self.darNombreEquipo(pNombre))
+                usuarios[indiceSesion].usarEquipo(self.darNombreEquipo(i))
                 reserva = True
         print("user 1: ", usuarios[0].cantidad())
         print("user 2: ", usuarios[1].cantidad())
@@ -138,10 +185,15 @@ class Laboratorio:
     def devolver(self,pNombre):
         devuelve = False
         for i in equipos:
-            if i.darNombre() == pNombre and i != None:
-                i.darCantidad += 1
+            if i.darNombre() == pNombre and  usuarios[indiceSesion].cantidadEquipo(i.darNombre())> 0:
+                i.devolverEquipo()
+                usuarios[indiceSesion].devolverEquipo(pNombre)
                 devuelve = True
         return devuelve
+    def devolverTodoUsuario(self):
+        for i in equipos:
+            for j in range(usuarios[indiceSesion].cantidadEquipo(i.darNombre())):
+                usuarios[indiceSesion].devolverEquipo(i.darNombre())
     def darEquipoPorNombre(self,pNombre):
         equip = None
         for i in equipos:
@@ -156,7 +208,6 @@ indiceSesion = sesion
 
 usuarios.append(Usuarios("jhernandezga","unal","jorge"))
 usuarios.append(Usuarios("jorge","unal","andres"))
-
 
 f = Equipos("Multimetro", "fluke", "87-v", 20)
 b = Equipos("Osciloscopio", "Rigol", "DS1054", 15)
@@ -175,20 +226,137 @@ labElectronica = Laboratorio("Laboratiorio de Ingeniería Eléctrica y Electrón
 def ventanaUsuario3():
 
     frame = Frame()
+    frame.config(bg = "white")
     frame.pack()
+    nombres = ["Multimetro","Osciloscopio","Sonda Osciloscopio", "Generador de Señales", "Cable Banana-Caiman","Fuente"]
+    mostrar1 = [StringVar(), StringVar(), StringVar(), StringVar(), StringVar(), StringVar()]
+    total = StringVar()
+    total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
+    tiempo = 0
+
+    for i in range(len(mostrar1)):
+        mostrar1[i].set(usuarios[indiceSesion].cantidadEquipo(nombres[i]))
 
     def anterior():
         ventanaUsuario2()
         frame.destroy()
+    def devolver(indice):
+        labElectronica.devolver(nombres[indice])
+        mostrar1[indice].set(usuarios[indiceSesion].cantidadEquipo(nombres[indice]))
+        total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
+
+    for i in range(6):
+        labelNombreOs = Label(frame, text = nombres[i])
+        labelNombreOs.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+        labelNombreOs.grid(row=i+1, column=2)
+
+    labelNombreOs1 = Label(frame, textvariable = mostrar1[0] )
+    labelNombreOs1.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelNombreOs1.grid(row=1, column=1)
+
+    labelNombreOs2 = Label(frame, textvariable = mostrar1[1])
+    labelNombreOs2.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelNombreOs2.grid(row= 2, column=1)
+
+    labelNombreOs3 = Label(frame, textvariable = mostrar1[2])
+    labelNombreOs3.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelNombreOs3.grid(row= 3, column=1)
+
+    labelNombreOs4 = Label(frame, textvariable = mostrar1[3])
+    labelNombreOs4.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelNombreOs4.grid(row= 4, column=1)
+
+    labelNombreOs5 = Label(frame, textvariable = mostrar1[4])
+    labelNombreOs5.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelNombreOs5.grid(row= 5, column=1)
+
+    labelNombreOs6 = Label(frame, textvariable = mostrar1[5])
+    labelNombreOs6.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelNombreOs6.grid(row= 6, column=1)
+
+    labelTotal= Label(frame, textvariable=total)
+    labelTotal.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelTotal.grid(row=7, column=1)
+
+
     anteriorButton = Button(frame, text="Anterior", width=20, height=1, activeforeground="#96D646",
-                             activebackground="white",
-                             command=anterior)  # command es para que llame a la funcion cuando se presione el boton
+                             activebackground="white", command = anterior)
     anteriorButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
-                           fg="white")  # se configura el relieve colore y fuente
-    anteriorButton.grid(row=7, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
-    labelImagen1 = Label(frame, image=demoUnal)  # Se crea un label y se le dice que va a contener la imagen logoUnal
-    labelImagen1.config(bg="White")
-    labelImagen1.grid(row=1, column=1)
+                           fg="white")
+    anteriorButton.grid(row=12, column=1, columnspan=2, pady=20)
+
+    quitar1 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
+                             activebackground="white", command = lambda: devolver(0) )
+    quitar1.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                           fg="white")
+    quitar1.grid(row=1, column=3 )
+
+
+    quitar2 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
+                     activebackground="white", command = lambda: devolver(1) )
+    quitar2.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                   fg="white")
+    quitar2.grid(row=2, column=3)
+
+    quitar3 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
+                     activebackground="white", command = lambda: devolver(2) )
+    quitar3.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                   fg="white")
+    quitar3.grid(row=3, column=3)
+
+    quitar4 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
+                     activebackground="white", command = lambda: devolver(3) )
+    quitar4.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                   fg="white")
+    quitar4.grid(row=4, column=3)
+
+    quitar5 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
+                     activebackground="white", command = lambda: devolver(4) )
+    quitar5.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                   fg="white")
+    quitar5.grid(row=5, column=3)
+
+    quitar6 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
+                     activebackground="white", command = lambda: devolver(5) )
+    quitar6.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                   fg="white")
+    quitar6.grid(row=6, column=3)
+
+    tiempoLabel = Label(frame, text="Seleccione el tiempo de uso máximo (Horas): ")
+    tiempoLabel.config(bg="white", fg="#7CD325", font=("Berlin Sans FB", 18))
+    tiempoLabel.grid(row=7, column=2, padx=20, pady=20, sticky="e")
+
+    radioTiempo1 = Radiobutton(frame, text="2", variable=tiempo,
+                                  value=1)
+    radioTiempo1.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
+                           activeforeground="#7CD325", fg="#540C21")
+    radioTiempo1.grid(row=7, column=3, sticky="w")
+
+    radioTiempo2 = Radiobutton(frame, text="5", variable=tiempo,
+                               value=2)
+    radioTiempo2.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
+                        activeforeground="#7CD325", fg="#540C21")
+    radioTiempo2.grid(row=8, column=3, sticky="w")
+
+    radioTiempo3 = Radiobutton(frame, text="8", variable=tiempo,
+                               value=3)
+    radioTiempo3.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
+                        activeforeground="#7CD325", fg="#540C21")
+    radioTiempo3.grid(row=9, column=3, sticky="w")
+
+    radioTiempo4 = Radiobutton(frame, text="12", variable=tiempo,
+                               value=4)
+    radioTiempo4.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
+                        activeforeground="#7CD325", fg="#540C21")
+    radioTiempo4.grid(row=10, column=3, sticky="w")
+
+    radioTiempo5 = Radiobutton(frame, text="24", variable=tiempo,
+                               value=5)
+    radioTiempo5.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
+                        activeforeground="#7CD325", fg="#540C21")
+    radioTiempo5.grid(row=11, column=3, sticky="w")
+
+
 def ventanaUsuario2():
 
     frame = Frame()
@@ -264,8 +432,6 @@ def ventanaUsuario2():
     labelCantidadMu = Label(frame, textvariable=mostrar[5])
     labelCantidadMu.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
     labelCantidadMu.grid(row=8, column=3)
-
-
 
     siguienteButton = Button(frame, text="Siguiente1", width=20, height=1, activeforeground="#540C21",
                           activebackground="white",
