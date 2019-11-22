@@ -3,12 +3,13 @@ AVANCE 1 PROYECTO LABS UNAL
 AUTORES: Andrés Felipe Ardila
          Jorge Andrés Hernández
          David Santiago Murcia
-versión 1.0
+versión 2.0
 """
-import os
-import sqlite3  #librería para bases de datos
 from tkinter import *   #libreria para crear la interfaz
 from tkinter import messagebox
+import time as tm
+from datetime import  datetime
+from math import fabs
 
 
 nombreProducto = ""
@@ -66,7 +67,6 @@ class Usuarios:   #clase para la creacion de usuarios
     usuario = ""
     contraseña = ""
     nombre =""
-    equiposUso = []
     cantida = 0
     multimetro = 0
     osciloscopio = 0
@@ -74,6 +74,10 @@ class Usuarios:   #clase para la creacion de usuarios
     generador = 0
     cable = 0
     fuente = 0
+    horas = 0
+    minutos = 0
+    segundos = 0
+    enPrestamo = 0
 
     def __init__(self,pUsuario, pContraseña,pNombre):
         self.usuario = pUsuario
@@ -129,7 +133,20 @@ class Usuarios:   #clase para la creacion de usuarios
         else:
             self.fuente -= 1
         self.cantida -= 1
-
+    def regresivo(self,hora):
+        pass
+    def darTiempo(self):
+        return [self.horas, self.minutos, self.segundos]
+    def asignarTiempo(self,hora,minuto,segundo):
+        self.horas = hora
+        self.minutos = minuto
+        self.segundos = segundo
+    def agregarEquiposAprestamo(self):
+        self.enPrestamo = self.cantidad
+    def darEquiposEnPrestamo(self):
+        return self.enPrestamo
+    def devolverPrestamo(self):
+        self.enPrestamo = 0
 class Equipos:
     marca = ""
     modelo = ""
@@ -179,8 +196,6 @@ class Laboratorio:
                 equipos[i].reservarEquipo()
                 usuarios[indiceSesion].usarEquipo(self.darNombreEquipo(i))
                 reserva = True
-        print("user 1: ", usuarios[0].cantidad())
-        print("user 2: ", usuarios[1].cantidad())
         return reserva
     def devolver(self,pNombre):
         devuelve = False
@@ -191,38 +206,100 @@ class Laboratorio:
                 devuelve = True
         return devuelve
     def devolverTodoUsuario(self):
+        retorno = False
         for i in equipos:
             for j in range(usuarios[indiceSesion].cantidadEquipo(i.darNombre())):
-                usuarios[indiceSesion].devolverEquipo(i.darNombre())
+                retorno = self.devolver(i.darNombre())
+        return retorno
     def darEquipoPorNombre(self,pNombre):
         equip = None
         for i in equipos:
             if i.darNombre() == pNombre:
                 equip = i
         return equip
+    def prestarAUsuario(self,indice, tiempo):
+        usuarios[indice].regresivo(tiempo)
 
 usuarios = []
 equipos = []
+usuariosPrestamos = []
 datos = DatosUsuarios()
 indiceSesion = sesion
 
 usuarios.append(Usuarios("jhernandezga","unal","jorge"))
 usuarios.append(Usuarios("jorge","unal","andres"))
 
-f = Equipos("Multimetro", "fluke", "87-v", 20)
-b = Equipos("Osciloscopio", "Rigol", "DS1054", 15)
-e = Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25)
-a = Equipos("Generador de Señales", "Electroni", "FY3224S", 25)
-d = Equipos("Cable Banana-Caiman", "Genérico", "NA", 100)
-c = Equipos("Fuente", "Genérico", "NA", 100)
-equipos.append(a)
-equipos.append(b)
-equipos.append(c)
-equipos.append(d)
-equipos.append(e)
-equipos.append(f)
+equipos.append(Equipos("Generador de Señales", "Electroni", "FY3224S", 25))
+equipos.append(Equipos("Osciloscopio", "Rigol", "DS1054", 15))
+equipos.append(Equipos("Fuente", "Genérico", "NA", 100))
+equipos.append(Equipos("Cable Banana-Caiman", "Genérico", "NA", 100))
+equipos.append(Equipos("Sonda Osciloscopio", "Genérico 10X", "P4060", 25))
+equipos.append(Equipos("Multimetro", "fluke", "87-v", 20))
 
 labElectronica = Laboratorio("Laboratiorio de Ingeniería Eléctrica y Electrónica",1)
+time1 = ''
+
+def ventanaUsuario4():
+    frame = Frame()
+    frame.config(bg="white")
+    frame.pack()
+    var = StringVar()
+
+    def tiempoEntrega():
+        hora = usuarios[indiceSesion].darTiempo()[0]
+        if hora > 23:
+            hora = int(fabs(hora-24))
+
+        local = "{}:{}:{}".format(hora, usuarios[indiceSesion].darTiempo()[1],usuarios[indiceSesion].darTiempo()[2])
+        return local
+    var.set(tiempoEntrega())
+
+
+    def devolvera():
+        if labElectronica.devolverTodoUsuario():
+            messagebox.showinfo("Devolución", "Los equipos fueron devueltos")
+            frame.destroy()
+            ventanaUsuario2()
+
+    labelHoras = Label(frame)
+    labelHoras.config(font=("Berlin Sans FB", 50), fg="#540C21", bg="White")
+    labelHoras.grid(row=2, column=2)
+
+    labelEntrega = Label(frame, textvariable = var)
+    labelEntrega.config(font=("Berlin Sans FB", 50), fg="#540C21", bg="White")
+    labelEntrega.grid(row=3, column=2)
+    def cerrar():
+        ventanaInicio()
+        frame.destroy()
+
+    def reloj():
+        global time1
+        time2 = tm.strftime('%H:%M:%S')
+        if time2 != time1:
+            time1 = time2
+            labelHoras.configure(text=time2)
+        labelHoras.after(500, reloj)
+
+    reloj()
+    labelTiempoAc = Label(frame, text = "Hora Actual:" )
+    labelTiempoAc.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelTiempoAc.grid(row=2, column=1, sticky = "e")
+
+    labelTiempoEntrega = Label(frame, text = "Hora de entrega:" )
+    labelTiempoEntrega.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelTiempoEntrega.grid(row=3, column=1, sticky ="e")
+
+    cerrarButton = Button(frame, text="Cerrar Sesión", width=20, height=1, activeforeground="#96D646",
+                            activebackground="white", command=cerrar)
+    cerrarButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                          fg="white")
+    cerrarButton.grid(row=5, column=1, pady=10)
+
+    devolverButton = Button(frame, text="Devolver", width=20, height=1, activeforeground="#96D646",
+                            activebackground="white", command=devolvera)
+    devolverButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                          fg="white")
+    devolverButton.grid(row=5, column=2, pady=10)
 def ventanaUsuario3():
 
     frame = Frame()
@@ -232,7 +309,9 @@ def ventanaUsuario3():
     mostrar1 = [StringVar(), StringVar(), StringVar(), StringVar(), StringVar(), StringVar()]
     total = StringVar()
     total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
-    tiempo = 0
+    tiempo = IntVar()
+    tiempo.set(-1)
+    tiemposPrestamo = [1,2,3,4,5]
 
     for i in range(len(mostrar1)):
         mostrar1[i].set(usuarios[indiceSesion].cantidadEquipo(nombres[i]))
@@ -242,8 +321,21 @@ def ventanaUsuario3():
         frame.destroy()
     def devolver(indice):
         labElectronica.devolver(nombres[indice])
+        usuarios[indiceSesion].devolverPrestamo()
         mostrar1[indice].set(usuarios[indiceSesion].cantidadEquipo(nombres[indice]))
         total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
+    def confirmarPrestamo():
+        dt = datetime.now()
+        if tiempo.get() == -1:
+            messagebox.showinfo("Info", "Selecciones el tiempo de uso")
+        elif usuarios[indiceSesion].cantidad() == 0:
+            messagebox.showinfo("Info", "Agregue equipos al préstamo")
+        else:
+            usuarios[indiceSesion].agregarEquiposAprestamo()
+            usuarios[indiceSesion].asignarTiempo(dt.hour+tiemposPrestamo[tiempo.get()], dt.minute, dt.second)
+            frame.destroy()
+            ventanaUsuario4()
+
 
     for i in range(6):
         labelNombreOs = Label(frame, text = nombres[i])
@@ -277,13 +369,16 @@ def ventanaUsuario3():
     labelTotal= Label(frame, textvariable=total)
     labelTotal.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
     labelTotal.grid(row=7, column=1)
+    labelTotall = Label(frame, textvariable=tiempo)
+    labelTotall.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelTotall.grid(row=9, column=1)
 
 
-    anteriorButton = Button(frame, text="Anterior", width=20, height=1, activeforeground="#96D646",
+    anteriorButton = Button(frame, text="<<", width=20, height=1, activeforeground="#96D646",
                              activebackground="white", command = anterior)
     anteriorButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")
-    anteriorButton.grid(row=12, column=1, columnspan=2, pady=20)
+    anteriorButton.grid(row=12, column=1, pady=10)
 
     quitar1 = Button(frame, text="Quitar", width=20, height=1, activeforeground="#540C21",
                              activebackground="white", command = lambda: devolver(0) )
@@ -322,41 +417,45 @@ def ventanaUsuario3():
                    fg="white")
     quitar6.grid(row=6, column=3)
 
+    confirmar = Button(frame, text="Confirmar", width=20, height=1, activeforeground="#540C21",
+                     activebackground="white", command = lambda: confirmarPrestamo())
+    confirmar.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                          fg="white")
+    confirmar.grid(row=12, column=3, columnspan = 2)
+
     tiempoLabel = Label(frame, text="Seleccione el tiempo de uso máximo (Horas): ")
     tiempoLabel.config(bg="white", fg="#7CD325", font=("Berlin Sans FB", 18))
     tiempoLabel.grid(row=7, column=2, padx=20, pady=20, sticky="e")
 
-    radioTiempo1 = Radiobutton(frame, text="2", variable=tiempo,
-                                  value=1)
+    radioTiempo1 = Radiobutton(frame, text=tiemposPrestamo[0],value=0, variable=tiempo
+                                  )
     radioTiempo1.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
                            activeforeground="#7CD325", fg="#540C21")
     radioTiempo1.grid(row=7, column=3, sticky="w")
 
-    radioTiempo2 = Radiobutton(frame, text="5", variable=tiempo,
-                               value=2)
+    radioTiempo2 = Radiobutton(frame, text=tiemposPrestamo[1], value=1,variable=tiempo
+                               )
     radioTiempo2.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
                         activeforeground="#7CD325", fg="#540C21")
     radioTiempo2.grid(row=8, column=3, sticky="w")
 
-    radioTiempo3 = Radiobutton(frame, text="8", variable=tiempo,
-                               value=3)
+    radioTiempo3 = Radiobutton(frame, text=tiemposPrestamo[2], value=2,variable=tiempo
+                               )
     radioTiempo3.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
                         activeforeground="#7CD325", fg="#540C21")
     radioTiempo3.grid(row=9, column=3, sticky="w")
 
-    radioTiempo4 = Radiobutton(frame, text="12", variable=tiempo,
-                               value=4)
+    radioTiempo4 = Radiobutton(frame, text=tiemposPrestamo[3],  value=3,variable=tiempo,
+                              )
     radioTiempo4.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
                         activeforeground="#7CD325", fg="#540C21")
     radioTiempo4.grid(row=10, column=3, sticky="w")
 
-    radioTiempo5 = Radiobutton(frame, text="24", variable=tiempo,
-                               value=5)
+    radioTiempo5 = Radiobutton(frame, text=tiemposPrestamo[4], value=4,variable=tiempo,
+                               )
     radioTiempo5.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
                         activeforeground="#7CD325", fg="#540C21")
     radioTiempo5.grid(row=11, column=3, sticky="w")
-
-
 def ventanaUsuario2():
 
     frame = Frame()
@@ -519,8 +618,12 @@ def ventanaInicio():
 
             validar =datos.validarContraseña(usuario, contraseña)
             if validar:  # si inicio es verdadero se ejecuta(si es verdadero significa que coinciden los datos)
-                ventanaUsuario2()
-                frame.destroy()
+                if usuarios[indiceSesion].cantidad() > 0:
+                    frame.destroy()
+                    ventanaUsuario4()
+                else:
+                    ventanaUsuario2()
+                    frame.destroy()
             else:
                 messagebox.showinfo("Info", "Usuario o contraseña incorrectos")
 
