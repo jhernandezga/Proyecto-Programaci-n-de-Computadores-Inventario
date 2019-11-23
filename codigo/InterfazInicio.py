@@ -78,6 +78,7 @@ class Usuarios:   #clase para la creacion de usuarios
     minutos = 0
     segundos = 0
     enPrestamo = 0
+    multas = 0
 
     def __init__(self,pUsuario, pContraseña,pNombre):
         self.usuario = pUsuario
@@ -147,6 +148,12 @@ class Usuarios:   #clase para la creacion de usuarios
         return self.enPrestamo
     def devolverPrestamo(self):
         self.enPrestamo = 0
+    def agregarMulta(self):
+        self.multas += 1
+    def quitarMultas(self):
+        self.multas = 0
+    def darMultas(self):
+        return self.multas
 class Equipos:
     marca = ""
     modelo = ""
@@ -223,11 +230,13 @@ class Laboratorio:
 usuarios = []
 equipos = []
 usuariosPrestamos = []
+usuariosMultas = []
 datos = DatosUsuarios()
 indiceSesion = sesion
 
-usuarios.append(Usuarios("jhernandezga","unal","jorge"))
-usuarios.append(Usuarios("jorge","unal","andres"))
+usuarios.append(Usuarios("jhernandezga","unal","Jorge Andrés Hernández"))
+usuarios.append(Usuarios("anardilaa","unal","Andrés Ardila"))
+usuarios.append(Usuarios("dmurcia","unal","David Murcia"))
 
 equipos.append(Equipos("Generador de Señales", "Electroni", "FY3224S", 25))
 equipos.append(Equipos("Osciloscopio", "Rigol", "DS1054", 15))
@@ -239,11 +248,234 @@ equipos.append(Equipos("Multimetro", "fluke", "87-v", 20))
 labElectronica = Laboratorio("Laboratiorio de Ingeniería Eléctrica y Electrónica",1)
 time1 = ''
 
+def ventanaAdmin3():
+    frame = Frame()
+    frame.config(bg="white")
+    frame.pack()
+    print(len(usuariosMultas))
+
+    def anterior():
+        frame.destroy()
+        ventanaAdmin1()
+
+    def quitarMulta(indice):
+        usuariosMultas[indice].quitarMultas()
+        messagebox.showinfo("Info", "Se eliminaron las multas del usuario")
+        usuariosMultas.remove(usuariosMultas[indice])
+        frame.destroy()
+        ventanaAdmin3()
+    for i in range(len(usuariosMultas)):
+
+        labelUsuariosM1 = Label(frame, text= usuariosMultas[i].darMultas())
+        labelUsuariosM1.config(font=("Berlin Sans FB", 16), fg="#96D646", bg="White")
+        labelUsuariosM1.grid(row=i+4, column=2)
+
+        labelUsuarios1 = Label(frame, text=usuariosMultas[i].darNombre())
+        labelUsuarios1.config(font=("Berlin Sans FB", 16), fg="#96D646", bg="White")
+        labelUsuarios1.grid(row=i+4, column=1)
+
+        multaButton = Button(frame, text="Quitar Multa", width=20, height=1, activeforeground="#96D646",
+                                activebackground="white", command = lambda :quitarMulta(i))
+        multaButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                              fg="white")
+        multaButton.grid(row=i+4, column=3)
+
+    if len(usuariosMultas) == 0:
+        labelMultas2 = Label(frame, text="No hay usuarios con multas")
+        labelMultas2.config(font=("Berlin Sans FB", 20), fg="#96D646", bg="White")
+        labelMultas2.grid(row=4, column=1, columnspan = 3)
+
+
+    labelMultas= Label(frame, text="Usuarios con Multas")
+    labelMultas.config(font=("Berlin Sans FB", 35), fg="#540C21", bg="White")
+    labelMultas.grid(row=2, column=1)
+
+    labelUsuariosM = Label(frame, text="Multas")
+    labelUsuariosM.config(font=("Berlin Sans FB", 19), fg="#540C21", bg="White")
+    labelUsuariosM.grid(row=3, column=2)
+
+    labelUsuarios = Label(frame, text="Usuarios")
+    labelUsuarios.config(font=("Berlin Sans FB", 19), fg="#540C21", bg="White")
+    labelUsuarios.grid(row=3, column=1)
+
+    anteriorButton = Button(frame, text="<<", width=20, height=1, activeforeground="#96D646",
+                            activebackground="white", command=anterior)
+    anteriorButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                          fg="white")
+    anteriorButton.grid(row=12, column=1)
+def ventanaAdmin2():
+    frame = Frame()
+    frame.config(bg="white")
+    frame.pack()
+
+    def anterior():
+        ventanaAdmin1()
+        frame.destroy()
+    def crearUsuario():
+
+        if nombreEntry.get() == "":
+            messagebox.showinfo("Info", "Escriba un nombre")
+        elif usuarioEntry.get() == "":
+            messagebox.showinfo("Info", "Escriba un nombre de usuario")
+        elif passEntry.get() == "":
+            messagebox.showinfo("Info", "Escriba una contraseña")
+        else:
+            crear = True
+            for i in range(len(usuarios)):
+                if usuarioEntry.get() == usuarios[i].darUsuario():
+                    crear = False
+                    break
+            if crear:
+                usuarios.append(Usuarios(usuarioEntry.get(),passEntry.get(),nombreEntry.get()))
+                messagebox.showinfo("Info", "Usuario creado")
+            else:
+                messagebox.showinfo("Info", "El usuario ya existe")
+
+
+    banLabel = Label(frame,
+                        text="Creación de Usuarios")
+    banLabel.config(font=("Berlin Sans FB", 30), bg="white",
+                       fg="#96D646", justify ="center")
+    banLabel.grid(row=1, column=1, padx=20, pady=20, columnspan = 2)
+
+    nombreLabel = Label(frame,
+                         text="Nombre:")
+    nombreLabel.config(font=("Berlin Sans FB", 15), bg="white",
+                        fg="gray")
+    nombreLabel.grid(row=2, column=1, padx=20, pady=20,
+                      sticky="e")
+
+    nombreEntry = Entry(frame)
+    nombreEntry.config(justify="center", fg="#7CD325",
+                        font=("Berlin Sans FB", 15))
+    nombreEntry.grid(row=2, column=2, padx=10, pady=20, sticky="w")
+
+    usuarioLabel = Label(frame,
+                         text="Usuario:")
+    usuarioLabel.config(font=("Berlin Sans FB", 15), bg="white",fg="gray")
+    usuarioLabel.grid(row=3, column=1, padx=20, pady=20,
+                      sticky="e")
+
+    usuarioEntry = Entry(frame)
+    usuarioEntry.config(justify="center", fg="#7CD325",
+                        font=("Berlin Sans FB", 15))
+    usuarioEntry.grid(row=3, column=2, padx=10, pady=20, sticky="w")
+
+    passLabel = Label(frame, text="Contraseña:")
+    passLabel.config(bg="white", fg="gray", font=("Berlin Sans FB", 15))
+    passLabel.grid(row=4, column=1, padx=10, pady=20, sticky="e")
+
+    passEntry = Entry(frame)
+    passEntry.config(justify="center", show="*", fg="#7CD325", font=("Berlin Sans FB", 15))
+    passEntry.grid(row=4, column=2, padx=10, pady=20, sticky="w")
+
+    cierraButton = Button(frame, text="<<", width=20, height=1, activeforeground="#540C21",
+                          activebackground="white",
+                          command=anterior)  # command es para que llame a la funcion cuando se presione el boton
+    cierraButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                        fg="white")  # se configura el relieve colore y fuente
+    cierraButton.grid(row=10, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+
+    crearButton = Button(frame, text="Crear", width=20, height=1, activeforeground="#540C21",
+                          activebackground="white",
+                          command=crearUsuario)  # command es para que llame a la funcion cuando se presione el boton
+    crearButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                        fg="white")  # se configura el relieve colore y fuente
+    crearButton.grid(row=10, column=3, columnspan=2, pady=20)  # se coloca en la grilla o tabla
+def ventanaAdmin1():
+    frame = Frame()
+    frame.config(bg="white")
+    frame.pack()
+    def cerrar():
+        ventanaInicio()
+        frame.destroy()
+
+    def crear():
+        ventanaAdmin2()
+        frame.destroy()
+    def multas():
+        ventanaAdmin3()
+        frame.destroy()
+
+    for i in range(len(usuariosPrestamos)):
+
+        labelNombre = Label(frame, text=usuariosPrestamos[i].darNombre())
+        labelNombre.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+        labelNombre.grid(row=i + 3, column=1)
+
+        labeltiempo = Label(frame, text=":".join(list(map(str,usuariosPrestamos[i].darTiempo()))))
+        labeltiempo.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+        labeltiempo.grid(row=i + 3, column=3)
+
+        labelt = Label(frame, text=str(usuariosPrestamos[i].cantidad()))
+        labelt.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+        labelt.grid(row=i + 3, column=2)
+
+    if len(usuariosPrestamos) == 0:
+        labelPresta2 = Label(frame, text="No hay préstamos")
+        labelPresta2.config(font=("Berlin Sans FB", 20), fg="#540C21", bg="White")
+        labelPresta2.grid(row=4, column=1, columnspan=3)
+
+
+    labelUsuarios = Label(frame, text = "Usuario")
+    labelUsuarios.config(font=("Berlin Sans FB", 16), fg="#96D646", bg="White")
+    labelUsuarios.grid(row=2, column=1)
+
+    labelCantidad = Label(frame, text= "Equipos en Préstamo")
+    labelCantidad.config(font=("Berlin Sans FB", 16), fg="#96D646", bg="White")
+    labelCantidad.grid(row=2, column=2)
+
+    labelEntrega = Label(frame, text="Hora de Entrega")
+    labelEntrega.config(font=("Berlin Sans FB", 16), fg="#96D646", bg="White")
+    labelEntrega.grid(row=2, column=3)
+
+    cierraButton = Button(frame, text="Cerrar Sesión", width=20, height=1, activeforeground="#96D646",
+                          activebackground="white",
+                          command=cerrar)  # command es para que llame a la funcion cuando se presione el boton
+    cierraButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                        fg="white")  # se configura el relieve colore y fuente
+    cierraButton.grid(row=10, column=1, pady=20)  # se coloca en la grilla o tabla
+
+    crearButton = Button(frame, text="Crear Usuario", width=20, height=1, activeforeground="#96D646",
+                          activebackground="white",
+                          command=crear)  # command es para que llame a la funcion cuando se presione el boton
+    crearButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                        fg="white")  # se configura el relieve colore y fuente
+    crearButton.grid(row=10, column=3,  pady=20)  # se coloca en la grilla o tabla
+
+    multasButton = Button(frame, text="Multas Usuarios", width=20, height=1, activeforeground="#96D646",
+                         activebackground="white",
+                         command=multas)
+    multasButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                       fg="white")
+    multasButton.grid(row=10, column=2, pady=20)
+
+def ventanaUsuario5():
+    frame = Frame()
+    frame.config(bg="white")
+    frame.pack()
+
+    def cerrar():
+        ventanaInicio()
+        frame.destroy()
+
+    labelHoras = Label(frame, text = "Tiene multas, por favor comuniquese con el administrador")
+    labelHoras.config(font=("Berlin Sans FB", 25), fg="#540C21", bg="White")
+    labelHoras.grid(row=2, column=1)
+
+    cierraButton = Button(frame, text="Cerrar Sesión", width=20, height=1, activeforeground="#96D646",
+                          activebackground="white",
+                          command=cerrar)  # command es para que llame a la funcion cuando se presione el boton
+    cierraButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
+                        fg="white")  # se configura el relieve colore y fuente
+    cierraButton.grid(row=10, column=1, columnspan=2, pady=20)  # se coloca en la grilla o tabla
 def ventanaUsuario4():
     frame = Frame()
     frame.config(bg="white")
     frame.pack()
     var = StringVar()
+    multas = StringVar()
+    multas.set(usuarios[indiceSesion].darMultas())
 
     def tiempoEntrega():
         hora = usuarios[indiceSesion].darTiempo()[0]
@@ -254,12 +486,16 @@ def ventanaUsuario4():
         return local
     var.set(tiempoEntrega())
 
-
     def devolvera():
         if labElectronica.devolverTodoUsuario():
             messagebox.showinfo("Devolución", "Los equipos fueron devueltos")
-            frame.destroy()
-            ventanaUsuario2()
+            usuariosPrestamos.remove(usuarios[indiceSesion])
+            if usuarios[indiceSesion].darMultas() == 0:
+                frame.destroy()
+                ventanaUsuario2()
+            else:
+                frame.destroy()
+                ventanaUsuario5()
 
     labelHoras = Label(frame)
     labelHoras.config(font=("Berlin Sans FB", 50), fg="#540C21", bg="White")
@@ -268,6 +504,7 @@ def ventanaUsuario4():
     labelEntrega = Label(frame, textvariable = var)
     labelEntrega.config(font=("Berlin Sans FB", 50), fg="#540C21", bg="White")
     labelEntrega.grid(row=3, column=2)
+
     def cerrar():
         ventanaInicio()
         frame.destroy()
@@ -278,12 +515,25 @@ def ventanaUsuario4():
         if time2 != time1:
             time1 = time2
             labelHoras.configure(text=time2)
+            if list(map(int,time1.split(":"))) == usuarios[indiceSesion].darTiempo():
+                messagebox.showinfo("Info", "Tiene una multa")
+                usuarios[indiceSesion].agregarMulta()
+                multas.set(usuarios[indiceSesion].darMultas())
+                usuariosMultas.append(usuarios[indiceSesion])
         labelHoras.after(500, reloj)
 
     reloj()
     labelTiempoAc = Label(frame, text = "Hora Actual:" )
     labelTiempoAc.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
     labelTiempoAc.grid(row=2, column=1, sticky = "e")
+
+    labelMultas1 = Label(frame, text = "Multas:")
+    labelMultas1.config(font=("Berlin Sans FB", 20), fg="#96D646", bg="White")
+    labelMultas1.grid(row=2, column=3)
+
+    labelMultas = Label(frame, textvariable = multas )
+    labelMultas.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
+    labelMultas.grid(row=2, column=4 )
 
     labelTiempoEntrega = Label(frame, text = "Hora de entrega:" )
     labelTiempoEntrega.config(font=("Berlin Sans FB", 16), fg="#540C21", bg="White")
@@ -311,7 +561,7 @@ def ventanaUsuario3():
     total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
     tiempo = IntVar()
     tiempo.set(-1)
-    tiemposPrestamo = [1,2,3,4,5]
+    tiemposPrestamo = [1,2,3,4,5,0]
 
     for i in range(len(mostrar1)):
         mostrar1[i].set(usuarios[indiceSesion].cantidadEquipo(nombres[i]))
@@ -333,6 +583,7 @@ def ventanaUsuario3():
         else:
             usuarios[indiceSesion].agregarEquiposAprestamo()
             usuarios[indiceSesion].asignarTiempo(dt.hour+tiemposPrestamo[tiempo.get()], dt.minute, dt.second)
+            usuariosPrestamos.append(usuarios[indiceSesion])
             frame.destroy()
             ventanaUsuario4()
 
@@ -456,6 +707,12 @@ def ventanaUsuario3():
     radioTiempo5.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
                         activeforeground="#7CD325", fg="#540C21")
     radioTiempo5.grid(row=11, column=3, sticky="w")
+
+    radioTiempo6 = Radiobutton(frame, text=tiemposPrestamo[5], value=5, variable=tiempo,
+                               )
+    radioTiempo6.config(bg="white", font=("Berlin Sans FB", 15), activebackground="white",
+                        activeforeground="#7CD325", fg="#540C21")
+    radioTiempo6.grid(row=8, column=2, sticky="w")
 def ventanaUsuario2():
 
     frame = Frame()
@@ -479,6 +736,7 @@ def ventanaUsuario2():
     def cerrar():
         ventanaInicio()
         frame.destroy()
+        labElectronica.devolverTodoUsuario()
 
     labelBanner = Label(frame, image= bannerLab)  # Se crea un label y se le dice que va a contener la imagen logoUnal
     labelBanner.config(bg="White")
@@ -607,6 +865,7 @@ def ventanaUsuario2():
     buttonMultímetro.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                            fg="white")  # se configura el relieve colore y fuente
     buttonMultímetro.grid(row=9, column=3, pady=5)  # se coloca en la grilla o tabla
+
 def ventanaInicio():
 
     def inicioSesion():
@@ -621,6 +880,9 @@ def ventanaInicio():
                 if usuarios[indiceSesion].cantidad() > 0:
                     frame.destroy()
                     ventanaUsuario4()
+                elif usuarios[indiceSesion].darMultas() > 0:
+                    frame.destroy()
+                    ventanaUsuario5()
                 else:
                     ventanaUsuario2()
                     frame.destroy()
@@ -631,7 +893,8 @@ def ventanaInicio():
 
             # comprueba si lo que se introdujo en las casillas es igual a user y pass predeterminado para el administrador
             if usuario == _USUARIO_ADMIN and contraseña == _PASS_ADMIN:
-                messagebox.showinfo("Info", "Se inició sesión correctamente como ADMINISTRADOR")  # alerta con mensaje
+                frame.destroy()
+                ventanaAdmin1()
             else:
                 messagebox.showinfo("Info", "Usuario o contraseña de ADMINISTRADOR incorrectos")
 
@@ -689,7 +952,8 @@ def ventanaInicio():
     inicioButton.grid(row=7, column=1, columnspan=2, pady=20)# se coloca en la grilla o tabla
 
 ventanaInicio()
-root.mainloop()  #debe colocarse para que la interfaz se mantenga en ejecucion y no se cierre
+root.mainloop()
+
 
 
 
