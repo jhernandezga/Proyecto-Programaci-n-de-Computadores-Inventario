@@ -10,17 +10,22 @@ from tkinter import messagebox
 import time as tm
 from datetime import  datetime
 from math import fabs
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from random import randint
 
+
+nombreProducto = ""
+marcaProducto = ""
+modeloProducto =""
+codigoProducto =""
+disponibilidadProducto = ""
+cantidadProductos = 0
+tiempoUsoProductos = 0
 multas = 0
+agregarProductos = False
 _USUARIO_ADMIN = "admin"
 _PASS_ADMIN = "programacion"
 rol = 0
 usuario = ""
 contraseña = ""
-now = datetime.now()
 
 root = Tk()  # Se crea una ventana
 root.title("LABS UNAL")  # se le da titulo a la ventana
@@ -35,14 +40,12 @@ osciloscopio = PhotoImage(file="../Imagenes/ImagenEquipos/osciloscopio.png")
 caiman = PhotoImage(file="../Imagenes/ImagenEquipos/caiman.png")
 multimetro = PhotoImage(file="../Imagenes/ImagenEquipos/multimetro.png")
 puntas = PhotoImage(file="../Imagenes/ImagenEquipos/puntas.png")
-nombres = ["Multimetro","Osciloscopio","Sonda Osciloscopio", "Generador de Señales", "Cable Banana-Caiman","Fuente"]
 
 sesion = -1
 class DatosUsuarios:
 
     global sesion
     global indiceSesion
-    global nombres
     def agregarUsuario(self,pUsuario,pContraseña,pNombre):
         usuarios.append(Usuarios(pUsuario,pContraseña,pNombre))
     def quitarUsuario(self,usuario):
@@ -58,11 +61,8 @@ class DatosUsuarios:
             if i.darUsuario() == pUsuario and i.darContraseña() == pContraseña:
                 self.retorno = True
                 break
-        indiceSesion = sesion
+        indiceSesion =sesion
         return self.retorno
-
-
-
 class Usuarios:   #clase para la creacion de usuarios
     usuario = ""
     contraseña = ""
@@ -79,7 +79,6 @@ class Usuarios:   #clase para la creacion de usuarios
     segundos = 0
     enPrestamo = 0
     multas = 0
-    fecha = ""
 
     def __init__(self,pUsuario, pContraseña,pNombre):
         self.usuario = pUsuario
@@ -143,10 +142,6 @@ class Usuarios:   #clase para la creacion de usuarios
         self.horas = hora
         self.minutos = minuto
         self.segundos = segundo
-    def asignarFecha(self, fech):
-        self.fecha = fech
-    def darFecha(self):
-        return  self.fecha
     def agregarEquiposAprestamo(self):
         self.enPrestamo = self.cantidad
     def darEquiposEnPrestamo(self):
@@ -252,7 +247,6 @@ equipos.append(Equipos("Multimetro", "fluke", "87-v", 20))
 
 labElectronica = Laboratorio("Laboratiorio de Ingeniería Eléctrica y Electrónica",1)
 time1 = ''
-dia = ''
 
 def ventanaAdmin3():
     frame = Frame()
@@ -482,18 +476,6 @@ def ventanaUsuario4():
     var = StringVar()
     multas = StringVar()
     multas.set(usuarios[indiceSesion].darMultas())
-    def reloj():
-        global time1
-        time2 = tm.strftime('%H:%M:%S')
-        if time2 != time1:
-            time1 = time2
-            labelHoras.configure(text=time2)
-            if list(map(int,time1.split(":"))) == usuarios[indiceSesion].darTiempo():
-                messagebox.showinfo("Info", "Tiene una multa")
-                usuarios[indiceSesion].agregarMulta()
-                multas.set(usuarios[indiceSesion].darMultas())
-                usuariosMultas.append(usuarios[indiceSesion])
-        labelHoras.after(500, reloj)
 
     def tiempoEntrega():
         hora = usuarios[indiceSesion].darTiempo()[0]
@@ -504,69 +486,9 @@ def ventanaUsuario4():
         return local
     var.set(tiempoEntrega())
 
-    def generarReciboUsuario( indice):
-        global nombres
-        w, h = A4
-        user = usuarios[indice].darUsuario()
-        name = usuarios[indice].darNombre()
-        multas = usuarios[indice].darMultas()
-        objetosTipo = 0
-        objetos = [0]
-        cantidad = [0]
-        for i in nombres:
-            if usuarios[indice].cantidadEquipo(i) > 0:
-                objetos.append(i)
-                cantidad.append(usuarios[indice].cantidadEquipo(i))
-                objetosTipo += 1
-        y_offset = 70
-        xlist = [100, 300, 500]
-        ylist = [h - y_offset - (n * 35 + 45) for n in range(1, objetosTipo + 3)]
-        a = user + str(randint(0, 1000))
-        c = canvas.Canvas(a + ".pdf", pagesize=A4)
-        c.setFont("Times-Roman", 28)
-        c.drawString(100, h - 50, "Recibo de devolución LABS UNAL")
-        c.line(60, h - 70, w - 60, h - 70)
-        c.setFont("Times-Roman", 15)
-        c.drawString(60, h - 100, "Usuario:" + user)
-        c.drawString(60, h - 120, "Nombre:" + name)
-        c.drawString(300, h - 100, "Laboratorio: Electrónica")
-        c.line(60, h - 125, w - 60, h - 125)
-        c.setFont("Times-Roman", 20)
-        c.drawString(230, h - 145, "Equipos Devueltos")
-        c.grid(xlist, ylist)
-        c.setFont("Times-Roman", 15)
-        c.drawString(170, h - y_offset - 100, "Equipo")
-        c.drawString(370, h - y_offset - 100, "Cantidad")
-        for i in range(1, len(ylist) - 1):
-            for j in range(len(xlist) - 1):
-                if j == 1:
-                    c.drawString(xlist[j] + 80, ylist[i] - 20, str(cantidad[i]))
-                else:
-                    c.drawString(xlist[j] + 40, ylist[i] - 20, objetos[i])
-        c.drawString(60, ylist[len(ylist) - 1] - 30, "Multas: " + str(multas))
-
-        c.drawString(60, ylist[len(ylist) - 1] - 50, "Hora de y fecha  devolución:                      "+ time1+"      "+ str(now.date()))
-        c.drawString(60, ylist[len(ylist) - 1] - 70,
-                     "Hora de y fecha  devolución programada: " + var.get() + "      " +usuarios[indiceSesion].darFecha() )
-        if multas > 0:
-            c.setFont("Times-Roman", 18)
-            c.drawString(60, ylist[len(ylist) - 1] - 105, "Nota:")
-            c.setFont("Times-Roman", 12)
-            c.drawString(50, ylist[len(ylist) - 1] - 120,
-                         "Tiene multas, por favor comuníquese con el administrador para poder realizar otro préstamo")
-        c.line(60, 90, w - 60, 90)
-        c.setFont("Times-Roman", 10)
-        c.drawString(60, 80, "jhernandezga@unal.edu.co")
-        c.drawString(60, 70, "anardilaa@unal.edu.co")
-        c.drawString(60, 60, "dmurciac@unal.edu.co")
-        c.line(60, 50, w - 60, 50)
-        c.save()
-
     def devolvera():
-        generarReciboUsuario(indiceSesion)
         if labElectronica.devolverTodoUsuario():
-
-            messagebox.showinfo("Devolución", "Los equipos fueron devueltos. Se ha generado su recibo")
+            messagebox.showinfo("Devolución", "Los equipos fueron devueltos")
             usuariosPrestamos.remove(usuarios[indiceSesion])
             if usuarios[indiceSesion].darMultas() == 0:
                 frame.destroy()
@@ -586,6 +508,19 @@ def ventanaUsuario4():
     def cerrar():
         ventanaInicio()
         frame.destroy()
+
+    def reloj():
+        global time1
+        time2 = tm.strftime('%H:%M:%S')
+        if time2 != time1:
+            time1 = time2
+            labelHoras.configure(text=time2)
+            if list(map(int,time1.split(":"))) == usuarios[indiceSesion].darTiempo():
+                messagebox.showinfo("Info", "Tiene una multa")
+                usuarios[indiceSesion].agregarMulta()
+                multas.set(usuarios[indiceSesion].darMultas())
+                usuariosMultas.append(usuarios[indiceSesion])
+        labelHoras.after(500, reloj)
 
     reloj()
     labelTiempoAc = Label(frame, text = "Hora Actual:" )
@@ -615,13 +550,12 @@ def ventanaUsuario4():
     devolverButton.config(bg="#96D646", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                           fg="white")
     devolverButton.grid(row=5, column=2, pady=10)
-
 def ventanaUsuario3():
 
     frame = Frame()
     frame.config(bg = "white")
     frame.pack()
-    global nombres
+    nombres = ["Multimetro","Osciloscopio","Sonda Osciloscopio", "Generador de Señales", "Cable Banana-Caiman","Fuente"]
     mostrar1 = [StringVar(), StringVar(), StringVar(), StringVar(), StringVar(), StringVar()]
     total = StringVar()
     total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
@@ -642,7 +576,6 @@ def ventanaUsuario3():
         total.set("Total: " + str(usuarios[indiceSesion].cantidad()))
     def confirmarPrestamo():
         dt = datetime.now()
-        usuarios[indiceSesion].asignarFecha(str(dt.date()))
         if tiempo.get() == -1:
             messagebox.showinfo("Info", "Selecciones el tiempo de uso")
         elif usuarios[indiceSesion].cantidad() == 0:
@@ -857,14 +790,14 @@ def ventanaUsuario2():
     labelCantidadMu.config(font=("Berlin Sans FB", 12), fg = "#96D646", bg = "White")
     labelCantidadMu.grid(row=8, column=3)
 
-    siguienteButton = Button(frame, text="Siguiente", width=20, height=1, activeforeground="#540C21",
+    siguienteButton = Button(frame, text="Siguiente1", width=20, height=1, activeforeground="#540C21",
                           activebackground="white",
                           command=siguiente)  # command es para que llame a la funcion cuando se presione el boton
     siguienteButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
                         fg="white")  # se configura el relieve colore y fuente
     siguienteButton.grid(row=10, column=2, columnspan=2, pady=20)  # se coloca en la grilla o tabla
 
-    cierraButton = Button(frame, text="Cerrar Sesión", width=20, height=1, activeforeground="#540C21",
+    cierraButton = Button(frame, text="Cerra", width=20, height=1, activeforeground="#540C21",
                              activebackground="white",
                              command=cerrar ) # command es para que llame a la funcion cuando se presione el boton
     cierraButton.config(bg="#540C21", borderwidth=0, relief="flat", font=("Berlin Sans FB", 15),
